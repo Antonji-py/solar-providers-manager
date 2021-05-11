@@ -1,28 +1,27 @@
 import csv
 from datetime import datetime
 
+from growatt.utils import check_device_type
+
 
 class GrowattFileMaker:
-    def write_logs_file(self, data, plant_name, dates):
+    def write_logs_file(self, data, plant_name, device_type, dates):
         filename = f"../output/growatt/logs/{plant_name} - {dates[0]}_{dates[1]}.csv"
-        headers = ['id', 'inverterId', 'time', 'bigDevice', 'status', 'vpv1', 'ipv1', 'ppv1', 'vpv2', 'ipv2', 'ppv2', 'vpv3', 'ipv3',
-        'ppv3', 'ppv', 'vacr', 'vacs', 'vact', 'iacr', 'iacs', 'iact', 'fac', 'pac', 'pacr', 'pacs', 'pact', 'faultType',
-        'temperature', 'powerToday', 'powerTotal', 'timeTotal', 'ipmTemperature', 'pBusVoltage', 'nBusVoltage', 'pf',
-        'epv1Today', 'epv1Total', 'epv2Today', 'epv2Total', 'epvTotal', 'rac', 'eRacToday', 'eRacTotal', 'warnCode',
-        'WarningValue1', 'realOPPercent', 'opFullwatt', 'warningValue2', 'vString1', 'currentString1', 'vString2',
-        'currentString2', 'vString3', 'currentString3', 'vString4', 'currentString4', 'vString5', 'currentString5',
-        'vString6', 'currentString6', 'vString7', 'currentString7', 'vString8', 'currentString8', 'strFault',
-        'dwStringWarningValue1', 'wStringStatusValue', 'wPIDFaultValue', 'vPidPvape', 'iPidPvape', 'pidStatus', 'vPidPvbpe',
-        'iPidPvbpe', 'isAgain']
+        headers = list(data[0].keys())
 
-        with open(filename, "w", newline="") as logs_file:
+        if device_type == "inv":
+            time_key = "time"
+        elif device_type == "tlx":
+            time_key = "calendar"
+
+        with open(filename, "w", newline="", encoding='utf-8') as logs_file:
             file_writer = csv.writer(logs_file)
             file_writer.writerow(headers)
 
             for data_row in data:
-                values = list(data_row.values())
-                values[2] = str(datetime(data_row["time"]["year"], data_row["time"]["month"] + 1, data_row["time"]["dayOfMonth"],
-                                         data_row["time"]["hourOfDay"], data_row["time"]["minute"], data_row["time"]["second"]))
+                values = [str(x).replace("，", ", ") for x in list(data_row.values())]
+                values[2] = str(datetime(data_row[time_key]["year"], data_row[time_key]["month"] + 1, data_row[time_key]["dayOfMonth"],
+                                         data_row[time_key]["hourOfDay"], data_row[time_key]["minute"], data_row[time_key]["second"]))
 
                 file_writer.writerow(values)
 

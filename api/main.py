@@ -91,9 +91,9 @@ def get_logs_file():
 
         plant_name = device_plant["plant_name"]
         if device_plant["provider"] == "growatt":
-            g_maker.write_logs_file(logs, plant_name, [start_date, end_date])
+            g_maker.write_logs_file(logs, plant_name, device["device_type"], [start_date, end_date])
         else:
-            se_maker.write_logs_file(logs, plant_name, [start_date, end_date])
+            se_maker.write_logs_file(logs, plant_name, device["device_type"], [start_date, end_date])
 
     return {"result": "File created successfully"}
 

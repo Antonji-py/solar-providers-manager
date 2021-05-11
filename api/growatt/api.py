@@ -1,5 +1,7 @@
 import requests
 
+from growatt.utils import check_device_type
+
 
 class GrowattApi:
     def __init__(self, username, password):
@@ -23,7 +25,7 @@ class GrowattApi:
 
         response = session.post(url, data=data)
         if response.json()["result"] != 1:
-            print("Error while logging in")
+            print("[Growatt]  Error while logging in")
 
     def get_plants(self):
         url = "http://server.growatt.com/selectPlant/getPlantList"
@@ -99,10 +101,12 @@ class GrowattApi:
                     device_data.update({"plant_id": device["plantId"]})
                     device_data.update({"serial_number": device["sn"]})
                     device_data.update({"device_model": device["deviceModel"]})
+                    device_data.update({"device_type": device["deviceTypeName"]})
                 except TypeError:
                     device_data.update({"plant_id": plant_id})
                     device_data.update({"serial_number": "null"})
                     device_data.update({"device_model": "null"})
+                    device_data.update({"device_type": "null"})
 
                 plant_devices.append(device_data)
 
@@ -111,7 +115,14 @@ class GrowattApi:
         return all_devices
 
     def get_daily_logs(self, device_id, date):
-        url = "http://server.growatt.com/device/getInverterHistory"
+        device_type = check_device_type(device_id)
+        if device_type == "inv":
+            device_key = "invSn"
+            url = "http://server.growatt.com/device/getInverterHistory"
+        elif device_type == "tlx":
+            device_key = "tlxSn"
+            url = "http://server.growatt.com/device/getTLXHistory"
+
         start_index = 0
         have_next = True
 
@@ -119,7 +130,7 @@ class GrowattApi:
 
         while have_next is True:
             data = {
-                "invSn": device_id,
+                device_key: device_id,
                 "startDate": date,
                 "endDate": date,
                 "start": start_index
@@ -155,6 +166,7 @@ class GrowattApi:
             }
 
             response = self.session.post(url, data=data)
+            print(response.text)
             response_json = response.json()
 
             logs += response_json["obj"]["datas"]
